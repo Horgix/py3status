@@ -24,6 +24,7 @@ from time import sleep, time
 from syslog import syslog, LOG_ERR, LOG_INFO, LOG_WARNING
 from i3status_wrapper import I3status
 from profiling import profile
+from helpers import print_line, print_stderr
 
 try:
     from setproctitle import setproctitle
@@ -40,20 +41,6 @@ def jsonify(string):
     if string.startswith(','):
         prefix, string = ',', string[1:]
     yield (prefix, loads(string))
-
-
-def print_line(line):
-    """
-    Print given line to stdout (i3bar).
-    """
-    sys.__stdout__.write('{}\n'.format(line))
-    sys.__stdout__.flush()
-
-
-def print_stderr(line):
-    """Print line to stderr
-    """
-    print(line, file=sys.stderr)
 
 
 class IOPoller:

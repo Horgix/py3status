@@ -1,0 +1,13 @@
+def print_line(line):
+    """
+    Print given line to stdout.
+    """
+    sys.__stdout__.write('{}\n'.format(line))
+    sys.__stdout__.flush()
+
+
+def print_stderr(line):
+    """
+    Print line to stderr.
+    """
+    print(line, file=sys.stderr)
