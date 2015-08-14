@@ -1,5 +1,6 @@
 # Full imports
 
+import sys
 import os
 import argparse
 
@@ -7,11 +8,13 @@ import argparse
 from time import sleep, time
 from threading import Event
 from copy import deepcopy
+from json import dumps
 
 # Project imports
 from profiling import profile
 from logger import logger
 from i3status_wrapper import I3status
+from events import Events
 
 class Py3status():
     """
@@ -237,6 +240,7 @@ class Py3status():
         else:
             self.i3status_thread.start()
             while not self.i3status_thread.ready:
+                print(self.i3status_thread.is_alive())
                 if not self.i3status_thread.is_alive():
                     err = self.i3status_thread.error
                     raise IOError(err)

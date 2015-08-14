@@ -4,14 +4,11 @@ from __future__ import print_function
 import ast
 import imp
 import locale
-import sys
 import logging
+import sys
 
 # Partial imports
 from collections import OrderedDict
-from contextlib import contextmanager
-from datetime import datetime
-from json import dumps, loads
 from signal import signal
 from signal import SIGTERM, SIGUSR1
 from subprocess import call
@@ -20,7 +17,6 @@ from syslog import syslog, LOG_ERR, LOG_INFO, LOG_WARNING
 # Project imports
 from profiling import profile
 from helpers import print_line, print_stderr
-from events import Events
 from module import Module
 from py3status import Py3status
 from logger import logger, initLogger
@@ -30,16 +26,6 @@ try:
     setproctitle('py3status')
 except ImportError:
     pass
-
-@contextmanager
-def jsonify(string):
-    """
-    Transform the given string to a JSON in a context manager fashion.
-    """
-    prefix = ''
-    if string.startswith(','):
-        prefix, string = ',', string[1:]
-    yield (prefix, loads(string))
 
 def main():
     initLogger()

@@ -1,5 +1,18 @@
+# Partial imports
 from threading import Thread
 from profiling import profile
+from copy import deepcopy
+from tempfile import NamedTemporaryFile
+from subprocess import Popen
+from subprocess import PIPE
+from datetime import datetime
+from json import dumps, loads
+from time import sleep
+
+# Project imports
+from logger import logger
+from events import IOPoller, Events
+from helpers import jsonify
 
 class I3status(Thread):
     """
@@ -290,13 +303,8 @@ class I3status(Thread):
                     date = datetime.strptime(i3s_time, time_fmt)
                 except Exception:
                     err = sys.exc_info()[1]
-                    syslog(
-                        LOG_ERR,
-                        'i3status set_time_modules {} failed ({})'.format(
-                            conf_name,
-                            err
-                        )
-                    )
+                    log.warning('i3status set_time_modules {} failed'
+                            '({})'.format( conf_name, err))
                     date = datetime.now()
                 finally:
                     self.config[conf_name]['date'] = date
@@ -408,12 +416,9 @@ class I3status(Thread):
         try:
             with NamedTemporaryFile(prefix='py3status_') as tmpfile:
                 self.write_tmp_i3status_config(tmpfile)
-                syslog(
-                    LOG_INFO,
-                    'i3status spawned using config file {}'.format(
-                        tmpfile.name
-                    )
-                )
+                logger.info('i3status spawned using config file {}'.format(
+                    tmpfile.name
+                    ))
 
                 i3status_pipe = Popen(
                     ['i3status', '-c', tmpfile.name],
@@ -434,7 +439,7 @@ class I3status(Thread):
                         line = self.poller_inp.readline(timeout)
                         if line:
                             if line.startswith('[{'):
-                                print_line(line)
+                                logger.debug(line)
                                 with jsonify(line) as (prefix, json_list):
                                     self.last_output = json_list
                                     self.last_output_ts = datetime.utcnow()
@@ -450,7 +455,7 @@ class I3status(Thread):
                                     header = loads(line)
                                     header.update({'click_events': True})
                                     line = dumps(header)
-                                print_line(line)
+                                logger.debug(line)
                             else:
                                 timeout = 0.5
                                 with jsonify(line) as (prefix, json_list):
@@ -501,7 +506,7 @@ class I3status(Thread):
             '[]'
         ]
         for line in init_output:
-            print_line(line)
+            logger.debug(line)
 
         # mock i3status output parsing
         self.last_output = []

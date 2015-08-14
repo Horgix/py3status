@@ -1,12 +1,16 @@
 # Full imports
 import select
+import sys
 
 # Partial imports
 from threading import Thread
 from subprocess import Popen
+from time import sleep, time
 
 # Project imports
 from profiling import profile
+from logger import logger
+from helpers import jsonify
 
 class IOPoller:
     """
@@ -296,12 +300,11 @@ class Events(Thread):
                         module = self.i3bar_click_events_module()
                         if module:
                             if self.config['debug']:
-                                syslog(
-                                    LOG_INFO,
-                                    'dispatching event to i3bar_click_events'
-                                )
-                            self.dispatch(module, obj, event)
+                                logger.info(
+                                        'dispatching event to i3bar_click_events'
+                                        )
+                                self.dispatch(module, obj, event)
             except Exception:
                 err = sys.exc_info()[1]
-                syslog(LOG_WARNING, 'event failed ({})'.format(err))
+                logger.warning(LOG_WARNING, 'event failed ({})'.format(err))
 
