@@ -16,6 +16,7 @@ from logger import logger
 from i3status_wrapper import I3status
 from events import Events
 
+
 class Py3status():
     """
     This is the py3status wrapper around i3status.
@@ -204,8 +205,8 @@ class Py3status():
                     )
             except Exception:
                 err = sys.exc_info()[1]
-                logger.warning('loading module "{}" failed ({})'.format(module,
-                    err))
+                logger.warning('loading module "{}" failed ({})'
+                               .format(module, err))
                 self.i3_nagbar(msg, level='warning')
 
     def setup(self):
@@ -358,8 +359,8 @@ class Py3status():
         # prepopulate the list so that every usable index exists, thx @Lujeni
         m_list = [
             '' for value in range(
-                sum([len(x.methods) for x in self.modules.values()])
-                + len(json_list)
+                sum([len(x.methods) for x in self.modules.values()]) +
+                len(json_list)
             )
         ]
 
@@ -478,8 +479,8 @@ class Py3status():
             # every configured interval seconds
             if (
                 self.config['interval'] <= 1 or (
-                    int(delta) % self.config['interval'] == 0
-                    and int(last_delta) != int(delta)
+                    int(delta) % self.config['interval'] == 0 and
+                    int(last_delta) != int(delta)
                 )
             ):
                 delta = 0

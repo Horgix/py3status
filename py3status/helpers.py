@@ -5,6 +5,7 @@ from json import loads
 # Project imports
 from logger import *
 
+
 def print_line(line):
     """
     Print given line to stdout.
@@ -19,6 +20,7 @@ def print_stderr(line):
     """
     print(line, file=sys.stderr)
 
+
 @contextmanager
 def jsonify(string):
     """
@@ -28,4 +30,3 @@ def jsonify(string):
     if string.startswith(','):
         prefix, string = ',', string[1:]
     yield (prefix, loads(string))
-

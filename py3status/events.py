@@ -12,6 +12,7 @@ from profiling import profile
 from logger import logger
 from helpers import jsonify
 
+
 class IOPoller:
     """
     This class implements a predictive and timing-out I/O reader
@@ -44,6 +45,7 @@ class IOPoller:
             return line
         else:
             return None
+
 
 class Events(Thread):
     """
@@ -194,11 +196,9 @@ class Events(Thread):
             # run_watch /var/run/openvpn.pid
             elif name == 'run_watch':
                 for k, v in self.i3s_config.items():
-                    if (
-                        k.startswith('run_watch')
-                        and isinstance(v, dict)
-                        and v.get('pidfile') == instance
-                    ):
+                    if (k.startswith('run_watch') and
+                            isinstance(v, dict) and
+                            v.get('pidfile') == instance):
                         instance = k.split(' ', 1)[1]
                         break
 
@@ -207,11 +207,11 @@ class Events(Thread):
                 device, mixer, mixer_idx = instance.split('.')
                 for k, v in self.i3s_config.items():
                     if (
-                        k.startswith('volume')
-                        and isinstance(v, dict)
-                        and v.get('device') == device
-                        and v.get('mixer') == mixer
-                        and str(v.get('mixer_idx')) == mixer_idx
+                        k.startswith('volume') and
+                        isinstance(v, dict) and
+                        v.get('device') == device and
+                        v.get('mixer') == mixer and
+                        str(v.get('mixer_idx')) == mixer_idx
                     ):
                         instance = k.split(' ', 1)[1]
                         break
@@ -301,10 +301,9 @@ class Events(Thread):
                         if module:
                             if self.config['debug']:
                                 logger.info(
-                                        'dispatching event to i3bar_click_events'
-                                        )
+                                    'dispatching event to i3bar_click_events'
+                                    )
                                 self.dispatch(module, obj, event)
             except Exception:
                 err = sys.exc_info()[1]
                 logger.warning(LOG_WARNING, 'event failed ({})'.format(err))
-

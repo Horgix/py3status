@@ -4,6 +4,7 @@ from threading import Thread
 # Project imports
 from profiling import profile
 
+
 class Module(Thread):
     """
     This class represents a user module (imported file).
@@ -256,5 +257,3 @@ class Module(Thread):
             except Exception:
                 # this would be stupid to die on exit
                 pass
-
-

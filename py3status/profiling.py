@@ -3,6 +3,7 @@ import cProfile
 # Used in development
 enable_profiling = False
 
+
 def profile(thread_run_fn):
     if not enable_profiling:
         return thread_run_fn
@@ -18,5 +19,3 @@ def profile(thread_run_fn):
             profiler.dump_stats("py3status-%s.profile" % thread_id)
 
     return wrapper_run
-
-

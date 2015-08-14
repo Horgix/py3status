@@ -14,6 +14,7 @@ from logger import logger
 from events import IOPoller, Events
 from helpers import jsonify
 
+
 class I3status(Thread):
     """
     This class is responsible for spawning i3status and reading its output.
@@ -57,13 +58,15 @@ class I3status(Thread):
         Check if a given section name is a valid parameter for i3status.
         """
         if cleanup:
-            valid_config_params = [ _ for _ in self.i3status_module_names if _ not in [
-                'cpu_usage', 'ddate', 'load', 'time'
-            ]]
+            valid_config_params = [
+                    _ for _ in self.i3status_module_names if _
+                    not in ['cpu_usage', 'ddate', 'load', 'time']
+                    ]
         else:
             valid_config_params = self.i3status_module_names + [
-                'general', 'order'
-            ]
+                    'general',
+                    'order'
+                    ]
         return param_name.split(' ')[0] in valid_config_params
 
     @staticmethod
@@ -232,7 +235,7 @@ class I3status(Thread):
         # cleanup unconfigured i3status modules that have no default
         for module_name in deepcopy(config['order']):
             if (self.valid_config_param(module_name, cleanup=True) and
-                not config.get(module_name)):
+                    not config.get(module_name)):
                 config.pop(module_name)
                 config['i3s_modules'].remove(module_name)
                 config['order'].remove(module_name)
@@ -304,7 +307,7 @@ class I3status(Thread):
                 except Exception:
                     err = sys.exc_info()[1]
                     log.warning('i3status set_time_modules {} failed'
-                            '({})'.format( conf_name, err))
+                                '({})'.format(conf_name, err))
                     date = datetime.now()
                 finally:
                     self.config[conf_name]['date'] = date
@@ -513,5 +516,3 @@ class I3status(Thread):
         self.last_output_ts = datetime.utcnow()
         self.last_prefix = ','
         self.update_json_list()
-
-

@@ -27,6 +27,7 @@ try:
 except ImportError:
     pass
 
+
 def main():
     initLogger()
     logger.debug("Starting py3status")
