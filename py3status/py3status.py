@@ -433,7 +433,8 @@ class Py3status():
 
     @staticmethod
     def print_module_description(details, mod_name, mod_path):
-        """Print module description extracted from its docstring.
+        """
+        Print module description extracted from its docstring.
         """
         if mod_name == '__init__':
             return
@@ -457,7 +458,8 @@ class Py3status():
             log.warning('  %-22s Unable to parse %s' % (mod_name, path))
 
     def handle_cli_command(self, cmd):
-        """Handle a command from the CLI.
+        """
+        Handle a command from the CLI.
         """
         # aliases
         if cmd[0] in ['mod', 'module', 'modules']:

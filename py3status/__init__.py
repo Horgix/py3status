@@ -19,7 +19,7 @@ except ImportError:
 
 def main():
     """
-    Exit codes :
+    Error exit codes :
         - 0 : OK
         - 1 : CLI command error
         - 2 : Exception during setup
@@ -30,7 +30,7 @@ def main():
     try:
         log.info("Setting locale")
         locale.setlocale(locale.LC_ALL, '')
-        log.info("Initiating py3status")
+        log.info("Instantiating py3status")
         py3 = Py3status()
         log.info("Setting py3status up")
         py3.setup()
