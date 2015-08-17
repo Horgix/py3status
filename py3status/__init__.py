@@ -4,16 +4,12 @@ from __future__ import print_function
 import locale
 import sys
 
-# Partial imports
-from collections import OrderedDict
-from subprocess import call
-
 # Project imports
 from profiling import profile
 from helpers import print_line, print_stderr
 from module import Module
 from py3status import Py3status
-from logger import logger, initLogger
+from logger import log, initLogger
 
 try:
     from setproctitle import setproctitle
@@ -21,56 +17,49 @@ try:
 except ImportError:
     pass
 
-
 def main():
-    initLogger()
-    logger.debug("Starting py3status")
+    """
+    Exit codes :
+        - 0 : OK
+        - 1 : CLI command error
+        - 2 : Exception during setup
+        - 3 : Exception during run
+    """
+    initLogger() # Initialize global logger
+    log.info("Starting py3status")
     try:
-        logger.debug("main: Setting locale")
+        log.info("Setting locale")
         locale.setlocale(locale.LC_ALL, '')
-        logger.debug("main: Setting locale OK")
-        logger.debug("main: Initiating py3status")
+        log.info("Initiating py3status")
         py3 = Py3status()
-        logger.debug("main: Initiating py3status OK")
-        logger.debug("main: Setting py3status up")
+        log.info("Setting py3status up")
         py3.setup()
-        logger.debug("main: Setting py3status up OK")
     except KeyboardInterrupt:
-        err = sys.exc_info()[1]
-        PyErr_Print()
-        logger.error("main: Keyboard interrupted setup")
-        py3.i3_nagbar('setup interrupted (KeyboardInterrupt)')
+        #err = sys.exc_info()[1]
+        log.warning("Setup interrupted (KeyboardInterrupt Exception)")
+        #py3.i3_nagbar('Setup interrupted (KeyboardInterrupt)')
         sys.exit(0)
     except Exception as e:
-        err = sys.exc_info()[1]
-        raise e
-        logger.error('setup error ({})'.format(err))
-        py3.i3_nagbar('setup error ({})'.format(err))
+        log.error('Setup error : {}'.format(e))
+        #py3.i3_nagbar('setup error ({})'.format(err))
         py3.stop()
         sys.exit(2)
 
     try:
-        logger.info("main: Running py3status")
+        log.info("Running py3status")
         py3.run()
     except IOError as e:
-        logger.error("main: Caught IOError", e)
+        log.error("Caught IOError : {}".format(e))
         sys.exit(3)
     except KeyboardInterrupt as e:
-        logger.error("main: Caught KeyboardInterrupted")
+        log.error("Run interrupted (KeyboardInterrupted Exception)")
         pass
     except Exception as e:
-        logger.error("main: Caught Exception", e)
-        sys.exit(2)
-        err = sys.exc_info()[1]
-        logger.info(sys.exc_info())
-        logger.error("main: runtime error ({})".format(sys.exc_info()[2]))
-        traceback.print_tb(sys.exc_info()[2])
-        raise e
-        py3.i3_nagbar('runtime error ({})'.format(err))
+        log.error("Caught Exception : {}".format(e))
+        #py3.i3_nagbar('runtime error ({})'.format(err))
         sys.exit(3)
     finally:
-        logger.debug(sys.exc_info())
-        logger.debug("main: Stopping")
+        log.debug("Stopping py3status")
         py3.stop()
         sys.exit(0)
 

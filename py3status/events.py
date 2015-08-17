@@ -9,7 +9,7 @@ from time import sleep, time
 
 # Project imports
 from profiling import profile
-from logger import logger
+from logger import log
 from helpers import jsonify
 
 
@@ -77,11 +77,11 @@ class Events(Thread):
             # module accepts click_events, use it
             module.click_event(event)
             if self.config['debug']:
-                logger.info('dispatching event {}'.format(event))
+                log.info('dispatching event {}'.format(event))
         else:
             # default button 2 action is to clear this method's cache
             if self.config['debug']:
-                logger.info('dispatching default event {}'.format(event))
+                log.info('dispatching default event {}'.format(event))
 
         # to make the bar more responsive to users we ask for a refresh
         # of the module or of i3status if the module is an i3status one
@@ -112,13 +112,13 @@ class Events(Thread):
         module = self.modules.get(module_name)
         if module is not None:
             if self.config['debug']:
-                logger.info('refresh module {}'.format(module_name))
+                log.info('refresh module {}'.format(module_name))
             for obj in module.methods.values():
                 obj['cached_until'] = time()
         else:
             if time() > (self.last_refresh_ts + 0.1):
                 if self.config['debug']:
-                    logger.info(
+                    log.info(
                         'refresh i3status for module {}'.format(module_name)
                     )
                 call(['killall', '-s', 'USR1', 'i3status'])
@@ -162,7 +162,7 @@ class Events(Thread):
         Execute the given i3 message and log its output.
         """
         i3_msg_pipe = Popen(['i3-msg', command], stdout=PIPE)
-        logger.info(
+        log.info(
             'i3-msg module="{}" command="{}" stdout={}'.format(
                 module_name,
                 command,
@@ -241,7 +241,7 @@ class Events(Thread):
             try:
                 with jsonify(event) as (prefix, event):
                     if self.config['debug']:
-                        logger.info('received event {}'.format(event))
+                        log.info('received event {}'.format(event))
 
                     # usage variables
                     button = event.get('button', 0)
@@ -253,7 +253,7 @@ class Events(Thread):
                     # i3status module name guess
                     instance, name = self.i3status_mod_guess(instance, name)
                     if self.config['debug']:
-                        logger.info(
+                        log.info(
                             'trying to dispatch event to module "{}"'.format(
                                 '{} {}'.format(name, instance).strip()
                             )
@@ -297,10 +297,10 @@ class Events(Thread):
                         module = self.i3bar_click_events_module()
                         if module:
                             if self.config['debug']:
-                                logger.info(
+                                log.info(
                                     'dispatching event to i3bar_click_events'
                                     )
                                 self.dispatch(module, obj, event)
             except Exception:
                 err = sys.exc_info()[1]
-                logger.warning('event failed ({})'.format(err))
+                log.warning('event failed ({})'.format(err))

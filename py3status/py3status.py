@@ -13,7 +13,7 @@ from signal import signal, SIGTERM, SIGUSR1
 
 # Project imports
 from profiling import profile
-from logger import logger
+from logger import log
 from i3status_wrapper import I3status
 from events import Events
 
@@ -26,12 +26,12 @@ class Py3status():
         """
         Useful variables we'll need.
         """
-        logger.debug("Initializing py3status")
+        log.debug("Initializing py3status")
         self.last_refresh_ts = time()
         self.lock = Event()
         self.modules = {}
         self.py3_modules = []
-        logger.debug("Initializing py3status OK")
+        log.debug("Initializing py3status OK")
 
     def get_config(self):
         """
@@ -198,14 +198,14 @@ class Py3status():
                     my_m.start()
                     self.modules[module] = my_m
                 elif self.config['debug']:
-                    logger.info(
+                    log.info(
                         'ignoring module "{}" (no methods found)'.format(
                             module
                         )
                     )
             except Exception:
                 err = sys.exc_info()[1]
-                logger.warning('loading module "{}" failed ({})'
+                log.warning('loading module "{}" failed ({})'
                                .format(module, err))
                 self.i3_nagbar(msg, level='warning')
 
@@ -213,22 +213,21 @@ class Py3status():
         """
         Setup py3status and spawn i3status/events/modules threads.
         """
-        logger.debug("Setting up py3status")
+        log.debug("Setting up py3status")
         # set the Event lock
         self.lock.set()
 
         # setup configuration
-        logger.debug("setup: getting configuration")
+        log.debug("Getting configuration")
         self.config = self.get_config()
-        logger.debug("setup: getting configuration OK")
 
         if self.config.get('cli_command'):
-            logger.info("Got cli_command from config")
+            log.info("Got cli_command from config")
             self.handle_cli_command(self.config['cli_command'])
             sys.exit()
 
         if self.config['debug']:
-            logger.info("Started with config {}".format(self.config))
+            log.info("Started with config {}".format(self.config))
 
         # setup i3status thread
         self.i3status_thread = I3status(
@@ -246,7 +245,7 @@ class Py3status():
                     raise IOError(err)
                 sleep(0.1)
         if self.config['debug']:
-            logger.info(
+            log.info(
                 'i3status thread {} with config {}'.format(
                     'started' if not self.config['standalone'] else 'mocked',
                     self.i3status_thread.config
@@ -262,7 +261,7 @@ class Py3status():
         )
         self.events_thread.start()
         if self.config['debug']:
-            logger.info('events thread started')
+            log.info('events thread started')
 
         # suppress modules' ouput wrt issue #20
         if not self.config['debug']:
@@ -275,7 +274,7 @@ class Py3status():
         # get a dict of all user provided modules
         user_modules = self.get_user_modules()
         if self.config['debug']:
-            logger.info('user_modules={}'.format(user_modules))
+            log.info('user_modules={}'.format(user_modules))
 
         if self.py3_modules:
             # load and spawn i3status.conf configured modules threads
@@ -294,9 +293,9 @@ class Py3status():
         msg += 'please try to fix this and reload i3wm (Mod+Shift+R)'
         try:
             if level == 'error':
-                logger.error(msg)
+                log.error(msg)
             else:
-                logger.warning(msg)
+                log.warning(msg)
             Popen(
                 ['i3-nagbar', '-m', msg, '-t', level],
                 stdout=open('/dev/null', 'w'),
@@ -312,7 +311,7 @@ class Py3status():
         try:
             self.lock.clear()
             if self.config['debug']:
-                logger.info('lock cleared, exiting')
+                log.info('lock cleared, exiting')
             self.i3status_thread.cleanup_tmpfile()
         except:
             pass
@@ -326,7 +325,7 @@ class Py3status():
         To prevent abuse, we rate limit this function to 100ms.
         """
         if time() > (self.last_refresh_ts + 0.1):
-            logger.info('received USR1, forcing refresh')
+            log.info('received USR1, forcing refresh')
 
             # send SIGUSR1 to i3status
             call(['killall', '-s', 'USR1', 'i3status'])
@@ -337,7 +336,7 @@ class Py3status():
             # reset the refresh timestamp
             self.last_refresh_ts = time()
         else:
-            logger.info(
+            log.info(
                 'received USR1 but rate limit is in effect, calm down'
             )
 
@@ -411,7 +410,7 @@ class Py3status():
 
         # log the final ordering in debug mode
         if self.config['debug']:
-            logger.info(
+            log.info(
                 'ordering result {}'.format([m['name'] for m in m_list])
             )
 
@@ -507,7 +506,7 @@ class Py3status():
 
             # dump the line to stdout only on change
             if json_list != previous_json_list:
-                logger.debug('{}{}'.format(prefix, dumps(json_list)))
+                log.debug('{}{}'.format(prefix, dumps(json_list)))
 
             # remember the last json list output
             previous_json_list = deepcopy(json_list)
@@ -534,15 +533,15 @@ class Py3status():
             docstring = ast.get_docstring(module, clean=True)
             if docstring:
                 short_description = docstring.split('\n')[0].rstrip('.')
-                logger.debug('  %-22s %s.' % (mod_name, short_description))
+                log.debug('  %-22s %s.' % (mod_name, short_description))
                 if details:
                     for description in docstring.split('\n')[1:]:
-                        logger.debug(' ' * 25 + '%s' % description)
-                    logger.debug(' ' * 25 + '---')
+                        log.debug(' ' * 25 + '%s' % description)
+                    log.debug(' ' * 25 + '---')
             else:
-                logger.debug('  %-22s No docstring in %s' % (mod_name, path))
+                log.debug('  %-22s No docstring in %s' % (mod_name, path))
         except Exception:
-            logger.warning('  %-22s Unable to parse %s' % (mod_name, path))
+            log.warning('  %-22s Unable to parse %s' % (mod_name, path))
 
     def handle_cli_command(self, cmd):
         """Handle a command from the CLI.
