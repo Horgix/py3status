@@ -196,14 +196,7 @@ class Module(Thread):
                         result['name'] = self.module_name
                         result['instance'] = self.module_inst
                     else:
-                        # this is an old school module reporting its position
-                        position, result = response
-                        if not isinstance(position, int):
-                            raise TypeError('position is not an int')
-                        if not isinstance(result, dict):
-                            raise TypeError('response should be a dict')
-                        if 'name' not in result:
-                            raise KeyError('missing "name" key in response')
+                        raise TypeError('response should be a dict')
 
                     # validate the response
                     if 'full_text' not in result:

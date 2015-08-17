@@ -144,31 +144,22 @@ class Py3status():
         respect to i3status.conf configured py3status modules.
 
         User provided modules take precedence over py3status generic modules.
-
-        If no module has been requested from i3status.conf, we'll load
-        every module present in the include paths
-        as this is the legacy behavior.
         """
         user_modules = dict()
+        if not self.py3_modules:
+            return user_modules
         for include_path in sorted(self.config['include_paths']):
             include_path = os.path.abspath(include_path) + '/'
             if not os.path.isdir(include_path):
                 continue
-
             for f_name in sorted(os.listdir(include_path)):
                 if not f_name.endswith('.py'):
                     continue
-
                 module_name = f_name[:-3]
-
-                if self.py3_modules:
-                    # i3status.conf based behaviour (using order += 'xx')
-                    for module in self.py3_modules:
-                        if module_name == module.split(' ')[0]:
-                            user_modules[module_name] = (include_path, f_name)
-                else:
-                    # legacy behaviour (load everything)
-                    user_modules[module_name] = (include_path, f_name)
+                # i3status.conf based behaviour (using order += 'xx')
+                for module in self.py3_modules:
+                    if module_name == module.split(' ')[0]:
+                        user_modules[module_name] = (include_path, f_name)
         return user_modules
 
     def load_modules(self, modules_list, user_modules):
@@ -279,10 +270,6 @@ class Py3status():
         if self.py3_modules:
             # load and spawn i3status.conf configured modules threads
             self.load_modules(self.py3_modules, user_modules)
-        else:
-            # legacy behaviour code
-            # load and spawn user modules threads based on inclusion folders
-            self.load_modules(user_modules, user_modules)
 
     def i3_nagbar(self, msg, level='error'):
         """
@@ -346,76 +333,6 @@ class Py3status():
         """
         for module in self.modules.values():
             module.clear_cache()
-
-    def get_modules_output(self, json_list):
-        """
-        Iterate over user modules and their output. Return the list ordered
-        as the user asked.
-        If two modules specify the same output index/position, the sorting will
-        be alphabetical.
-        """
-        # prepopulate the list so that every usable index exists, thx @Lujeni
-        m_list = [
-            '' for value in range(
-                sum([len(x.methods) for x in self.modules.values()]) +
-                len(json_list)
-            )
-        ]
-
-        # run through modules/methods output and insert them in reverse order
-        debug_msg = ''
-        for m in reversed(list(self.modules.values())):
-            for meth in m.methods:
-                position = m.methods[meth]['position']
-                last_output = m.methods[meth]['last_output']
-                try:
-                    assert position in range(len(m_list))
-                    if m_list[position] == '':
-                        m_list[position] = last_output
-                    else:
-                        if '' in m_list:
-                            m_list.remove('')
-                        m_list.insert(position, last_output)
-                except (AssertionError, IndexError):
-                    # out of range indexes get placed at the end of the output
-                    m_list.append(last_output)
-                finally:
-                    # debug user module's index
-                    if self.config['debug']:
-                        debug_msg += '{}={} '.format(
-                            meth,
-                            m_list.index(last_output)
-                        )
-
-        # append i3status json list to the modules' list in empty slots
-        debug_msg = ''
-        for i3s_json in json_list:
-            for i in range(len(m_list)):
-                if m_list[i] == '':
-                    m_list[i] = i3s_json
-                    break
-            else:
-                # this should not happen !
-                m_list.append(i3s_json)
-
-            # debug i3status module's index
-            if self.config['debug']:
-                debug_msg += '{}={} '.format(
-                    i3s_json['name'],
-                    m_list.index(i3s_json)
-                )
-
-        # cleanup and return output list, we also remove empty outputs
-        m_list = list(filter(lambda a: a != '' and a['full_text'], m_list))
-
-        # log the final ordering in debug mode
-        if self.config['debug']:
-            log.info(
-                'ordering result {}'.format([m['name'] for m in m_list])
-            )
-
-        # return the ordered result
-        return m_list
 
     def terminate(self, signum, frame):
         """
@@ -493,16 +410,12 @@ class Py3status():
                 )
 
             # construct the global output
-            if self.modules:
-                if self.py3_modules:
-                    # new style i3status configured ordering
-                    json_list = self.i3status_thread.get_modules_output(
-                        json_list,
-                        self.modules
-                    )
-                else:
-                    # old style ordering
-                    json_list = self.get_modules_output(json_list)
+            if self.modules and self.py3_modules:
+                # new style i3status configured ordering
+                json_list = self.i3status_thread.get_modules_output(
+                    json_list,
+                    self.modules
+                )
 
             # dump the line to stdout only on change
             if json_list != previous_json_list:
