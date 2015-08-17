@@ -9,6 +9,7 @@ from time import sleep, time
 from threading import Event
 from copy import deepcopy
 from json import dumps
+from signal import signal, SIGTERM, SIGUSR1
 
 # Project imports
 from profiling import profile
@@ -197,8 +198,7 @@ class Py3status():
                     my_m.start()
                     self.modules[module] = my_m
                 elif self.config['debug']:
-                    syslog(
-                        LOG_INFO,
+                    logger.info(
                         'ignoring module "{}" (no methods found)'.format(
                             module
                         )
@@ -223,12 +223,12 @@ class Py3status():
         logger.debug("setup: getting configuration OK")
 
         if self.config.get('cli_command'):
-            log.info("Got cli_command from config")
+            logger.info("Got cli_command from config")
             self.handle_cli_command(self.config['cli_command'])
             sys.exit()
 
         if self.config['debug']:
-            log.info("Started with config {}".format(self.config))
+            logger.info("Started with config {}".format(self.config))
 
         # setup i3status thread
         self.i3status_thread = I3status(
@@ -241,14 +241,12 @@ class Py3status():
         else:
             self.i3status_thread.start()
             while not self.i3status_thread.ready:
-                print(self.i3status_thread.is_alive())
                 if not self.i3status_thread.is_alive():
                     err = self.i3status_thread.error
                     raise IOError(err)
                 sleep(0.1)
         if self.config['debug']:
-            syslog(
-                LOG_INFO,
+            logger.info(
                 'i3status thread {} with config {}'.format(
                     'started' if not self.config['standalone'] else 'mocked',
                     self.i3status_thread.config
@@ -264,7 +262,7 @@ class Py3status():
         )
         self.events_thread.start()
         if self.config['debug']:
-            syslog(LOG_INFO, 'events thread started')
+            logger.info('events thread started')
 
         # suppress modules' ouput wrt issue #20
         if not self.config['debug']:
@@ -277,7 +275,7 @@ class Py3status():
         # get a dict of all user provided modules
         user_modules = self.get_user_modules()
         if self.config['debug']:
-            syslog(LOG_INFO, 'user_modules={}'.format(user_modules))
+            logger.info('user_modules={}'.format(user_modules))
 
         if self.py3_modules:
             # load and spawn i3status.conf configured modules threads
@@ -295,8 +293,10 @@ class Py3status():
         msg = 'py3status: {}. '.format(msg)
         msg += 'please try to fix this and reload i3wm (Mod+Shift+R)'
         try:
-            log_level = LOG_ERR if level == 'error' else LOG_WARNING
-            syslog(log_level, msg)
+            if level == 'error':
+                logger.error(msg)
+            else:
+                logger.warning(msg)
             Popen(
                 ['i3-nagbar', '-m', msg, '-t', level],
                 stdout=open('/dev/null', 'w'),
@@ -312,7 +312,7 @@ class Py3status():
         try:
             self.lock.clear()
             if self.config['debug']:
-                syslog(LOG_INFO, 'lock cleared, exiting')
+                logger.info('lock cleared, exiting')
             self.i3status_thread.cleanup_tmpfile()
         except:
             pass
@@ -326,7 +326,7 @@ class Py3status():
         To prevent abuse, we rate limit this function to 100ms.
         """
         if time() > (self.last_refresh_ts + 0.1):
-            syslog(LOG_INFO, 'received USR1, forcing refresh')
+            logger.info('received USR1, forcing refresh')
 
             # send SIGUSR1 to i3status
             call(['killall', '-s', 'USR1', 'i3status'])
@@ -337,8 +337,7 @@ class Py3status():
             # reset the refresh timestamp
             self.last_refresh_ts = time()
         else:
-            syslog(
-                LOG_INFO,
+            logger.info(
                 'received USR1 but rate limit is in effect, calm down'
             )
 
@@ -412,8 +411,7 @@ class Py3status():
 
         # log the final ordering in debug mode
         if self.config['debug']:
-            syslog(
-                LOG_INFO,
+            logger.info(
                 'ordering result {}'.format([m['name'] for m in m_list])
             )
 
@@ -509,7 +507,7 @@ class Py3status():
 
             # dump the line to stdout only on change
             if json_list != previous_json_list:
-                print_line('{}{}'.format(prefix, dumps(json_list)))
+                logger.debug('{}{}'.format(prefix, dumps(json_list)))
 
             # remember the last json list output
             previous_json_list = deepcopy(json_list)
@@ -536,13 +534,13 @@ class Py3status():
             docstring = ast.get_docstring(module, clean=True)
             if docstring:
                 short_description = docstring.split('\n')[0].rstrip('.')
-                print_stderr('  %-22s %s.' % (mod_name, short_description))
+                logger.debug('  %-22s %s.' % (mod_name, short_description))
                 if details:
                     for description in docstring.split('\n')[1:]:
-                        print_stderr(' ' * 25 + '%s' % description)
-                    print_stderr(' ' * 25 + '---')
+                        logger.debug(' ' * 25 + '%s' % description)
+                    logger.debug(' ' * 25 + '---')
             else:
-                print_stderr('  %-22s No docstring in %s' % (mod_name, path))
+                logger.debug('  %-22s No docstring in %s' % (mod_name, path))
         except Exception:
             logger.warning('  %-22s Unable to parse %s' % (mod_name, path))
 

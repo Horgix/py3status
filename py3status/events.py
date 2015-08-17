@@ -77,11 +77,11 @@ class Events(Thread):
             # module accepts click_events, use it
             module.click_event(event)
             if self.config['debug']:
-                syslog(LOG_INFO, 'dispatching event {}'.format(event))
+                logger.info('dispatching event {}'.format(event))
         else:
             # default button 2 action is to clear this method's cache
             if self.config['debug']:
-                syslog(LOG_INFO, 'dispatching default event {}'.format(event))
+                logger.info('dispatching default event {}'.format(event))
 
         # to make the bar more responsive to users we ask for a refresh
         # of the module or of i3status if the module is an i3status one
@@ -112,14 +112,13 @@ class Events(Thread):
         module = self.modules.get(module_name)
         if module is not None:
             if self.config['debug']:
-                syslog(LOG_INFO, 'refresh module {}'.format(module_name))
+                logger.info('refresh module {}'.format(module_name))
             for obj in module.methods.values():
                 obj['cached_until'] = time()
         else:
             if time() > (self.last_refresh_ts + 0.1):
                 if self.config['debug']:
-                    syslog(
-                        LOG_INFO,
+                    logger.info(
                         'refresh i3status for module {}'.format(module_name)
                     )
                 call(['killall', '-s', 'USR1', 'i3status'])
@@ -163,8 +162,7 @@ class Events(Thread):
         Execute the given i3 message and log its output.
         """
         i3_msg_pipe = Popen(['i3-msg', command], stdout=PIPE)
-        syslog(
-            LOG_INFO,
+        logger.info(
             'i3-msg module="{}" command="{}" stdout={}'.format(
                 module_name,
                 command,
@@ -243,7 +241,7 @@ class Events(Thread):
             try:
                 with jsonify(event) as (prefix, event):
                     if self.config['debug']:
-                        syslog(LOG_INFO, 'received event {}'.format(event))
+                        logger.info('received event {}'.format(event))
 
                     # usage variables
                     button = event.get('button', 0)
@@ -255,8 +253,7 @@ class Events(Thread):
                     # i3status module name guess
                     instance, name = self.i3status_mod_guess(instance, name)
                     if self.config['debug']:
-                        syslog(
-                            LOG_INFO,
+                        logger.info(
                             'trying to dispatch event to module "{}"'.format(
                                 '{} {}'.format(name, instance).strip()
                             )
@@ -306,4 +303,4 @@ class Events(Thread):
                                 self.dispatch(module, obj, event)
             except Exception:
                 err = sys.exc_info()[1]
-                logger.warning(LOG_WARNING, 'event failed ({})'.format(err))
+                logger.warning('event failed ({})'.format(err))

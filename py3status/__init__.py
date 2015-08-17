@@ -1,18 +1,12 @@
 from __future__ import print_function
 
 # Full imports
-import ast
-import imp
 import locale
-import logging
 import sys
 
 # Partial imports
 from collections import OrderedDict
-from signal import signal
-from signal import SIGTERM, SIGUSR1
 from subprocess import call
-from syslog import syslog, LOG_ERR, LOG_INFO, LOG_WARNING
 
 # Project imports
 from profiling import profile
@@ -58,14 +52,24 @@ def main():
     try:
         logger.info("main: Running py3status")
         py3.run()
-    except Exception:
+    except IOError as e:
+        logger.error("main: Caught IOError", e)
+        sys.exit(3)
+    except KeyboardInterrupt as e:
+        logger.error("main: Caught KeyboardInterrupted")
+        pass
+    except Exception as e:
+        logger.error("main: Caught Exception", e)
+        sys.exit(2)
         err = sys.exc_info()[1]
+        logger.info(sys.exc_info())
+        logger.error("main: runtime error ({})".format(sys.exc_info()[2]))
+        traceback.print_tb(sys.exc_info()[2])
+        raise e
         py3.i3_nagbar('runtime error ({})'.format(err))
         sys.exit(3)
-    except KeyboardInterrupt:
-        logger.error("main: Keyboard interrupted run")
-        pass
     finally:
+        logger.debug(sys.exc_info())
         logger.debug("main: Stopping")
         py3.stop()
         sys.exit(0)
