@@ -74,6 +74,8 @@ class Py3status():
             i3status_config_file_default = '{}/.i3/i3status.conf'.format(
                 home_path
             )
+        if not os.path.isfile(i3status_config_file_default):
+            raise FileNotFoundError("cannot find configuration")
 
         # command line options
         parser = argparse.ArgumentParser(
