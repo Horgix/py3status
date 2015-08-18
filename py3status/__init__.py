@@ -7,7 +7,6 @@ import sys
 # Project imports
 from profiling import profile
 from helpers import print_line, print_stderr
-from module import Module
 from py3status import Py3status
 from logger import log, init_logger
 

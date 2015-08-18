@@ -15,6 +15,7 @@ from profiling import profile
 from logger import log
 from i3status_wrapper import I3status
 from events import Events
+from module import Module
 
 
 class Py3status():
