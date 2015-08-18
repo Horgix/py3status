@@ -6,6 +6,7 @@ import sys
 from contextlib import contextmanager
 from json import loads
 
+
 def print_line(line):
     """
     Print given line to stdout.

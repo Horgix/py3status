@@ -17,6 +17,7 @@ try:
 except ImportError:
     pass
 
+
 def main():
     """
     Error exit codes :
@@ -25,7 +26,7 @@ def main():
         - 2 : Exception during setup
         - 3 : Exception during run
     """
-    init_logger() # Initialize global logger
+    init_logger()  # Initialize global logger
     log.info("Starting py3status")
     try:
         log.info("Setting locale")

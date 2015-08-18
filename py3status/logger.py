@@ -8,6 +8,7 @@ from subprocess import Popen
 
 log = logging.getLogger('py3status')
 
+
 class I3nagbarHandler(logging.StreamHandler):
     """
     Logging handler used to display warning and errors with i3-nagbar.
@@ -26,6 +27,7 @@ class I3nagbarHandler(logging.StreamHandler):
         except:
             self.handleError(record)
 
+
 def init_logger():
     # Handlers
     stdoutHandler = logging.StreamHandler()
@@ -35,10 +37,10 @@ def init_logger():
     stdoutFormatter = logging.Formatter(
             "%(levelname)5s [%(filename)20s:%(funcName)10s()] - %(message)s"
             )
+    # TODO : Make the 'Mod+Shift+R' message parse the i3 config ?
     nagbarFormatter = logging.Formatter(
             "py3status: %(message)s. "
             "Please try to fix this and reload i3wm (Mod+Shift+R)")
-            # TODO : Make the 'Mod+Shift+R' message parse the i3 config ?
     syslogFormatter = logging.Formatter("%(message)s")
     # Levels
     stdoutHandler.setLevel(logging.DEBUG)

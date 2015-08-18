@@ -194,7 +194,7 @@ class Py3status():
             except Exception:
                 err = sys.exc_info()[1]
                 log.warning('loading module "{}" failed ({})'
-                               .format(module, err))
+                            .format(module, err))
 
     def setup(self):
         """
