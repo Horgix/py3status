@@ -1,10 +1,10 @@
+# Full imports
+
+import sys
+
 # Partial imports
 from contextlib import contextmanager
 from json import loads
-
-# Project imports
-from logger import *
-
 
 def print_line(line):
     """

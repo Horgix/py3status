@@ -1,5 +1,4 @@
 # Full imports
-
 import sys
 import os
 import argparse
@@ -26,12 +25,10 @@ class Py3status():
         """
         Useful variables we'll need.
         """
-        log.debug("Initializing py3status")
         self.last_refresh_ts = time()
         self.lock = Event()
         self.modules = {}
         self.py3_modules = []
-        log.debug("Initializing py3status OK")
 
     def get_config(self):
         """
@@ -198,7 +195,6 @@ class Py3status():
                 err = sys.exc_info()[1]
                 log.warning('loading module "{}" failed ({})'
                                .format(module, err))
-                self.i3_nagbar(msg, level='warning')
 
     def setup(self):
         """
@@ -270,26 +266,6 @@ class Py3status():
         if self.py3_modules:
             # load and spawn i3status.conf configured modules threads
             self.load_modules(self.py3_modules, user_modules)
-
-    def i3_nagbar(self, msg, level='error'):
-        """
-        Make use of i3-nagbar to display errors and warnings to the user.
-        We also make sure to log anything to keep trace of it.
-        """
-        msg = 'py3status: {}. '.format(msg)
-        msg += 'please try to fix this and reload i3wm (Mod+Shift+R)'
-        try:
-            if level == 'error':
-                log.error(msg)
-            else:
-                log.warning(msg)
-            Popen(
-                ['i3-nagbar', '-m', msg, '-t', level],
-                stdout=open('/dev/null', 'w'),
-                stderr=open('/dev/null', 'w')
-            )
-        except:
-            pass
 
     def stop(self):
         """
@@ -363,7 +339,7 @@ class Py3status():
                 err = self.i3status_thread.error
                 if not err:
                     err = 'i3status died horribly'
-                self.i3_nagbar(err)
+                log.error(err)
                 break
 
             # check events thread
@@ -371,8 +347,8 @@ class Py3status():
                 # don't spam the user with i3-nagbar warnings
                 if not hasattr(self.events_thread, 'i3_nagbar'):
                     self.events_thread.i3_nagbar = True
-                    err = 'events thread died, click events are disabled'
-                    self.i3_nagbar(err, level='warning')
+                    msg = 'events thread died, click events are disabled'
+                    log.warning(msg)
 
             # check that every module thread is alive
             for module in self.modules.values():
@@ -383,7 +359,7 @@ class Py3status():
                         msg = 'output frozen for dead module(s) {}'.format(
                             ','.join(module.methods.keys())
                         )
-                        self.i3_nagbar(msg, level='warning')
+                        log.warning(msg)
 
             # get output from i3status
             prefix = self.i3status_thread.last_prefix
