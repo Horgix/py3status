@@ -1,6 +1,7 @@
 # Full imports
-import logging
 import sys
+import logging
+import logging.handlers
 
 # Partial imports
 from subprocess import Popen
@@ -26,25 +27,29 @@ class I3nagbarHandler(logging.StreamHandler):
             self.handleError(record)
 
 def init_logger():
-    # TODO : add syslog handler
     # Handlers
     stdoutHandler = logging.StreamHandler()
     nagbarHandler = I3nagbarHandler()
+    syslogHandler = logging.handlers.SysLogHandler(address='/dev/log')
     # Formatters
-    verboseFormatter = logging.Formatter(
+    stdoutFormatter = logging.Formatter(
             "%(levelname)5s [%(filename)20s:%(funcName)10s()] - %(message)s"
             )
-    # TODO : Make the 'Mod+Shift+R' message parse the i3 config ?
     nagbarFormatter = logging.Formatter(
             "py3status: %(message)s. "
             "Please try to fix this and reload i3wm (Mod+Shift+R)")
+            # TODO : Make the 'Mod+Shift+R' message parse the i3 config ?
+    syslogFormatter = logging.Formatter("%(message)s")
     # Levels
     stdoutHandler.setLevel(logging.DEBUG)
     nagbarHandler.setLevel(logging.WARNING)
+    syslogHandler.setLevel(logging.DEBUG)
     # Loggers
-    stdoutHandler.setFormatter(verboseFormatter)
+    stdoutHandler.setFormatter(stdoutFormatter)
     nagbarHandler.setFormatter(nagbarFormatter)
+    syslogHandler.setFormatter(syslogFormatter)
     log.addHandler(stdoutHandler)
     log.addHandler(nagbarHandler)
+    log.addHandler(syslogHandler)
     # Default level : DEBUG = forward everything to handlers
     log.setLevel(logging.DEBUG)
